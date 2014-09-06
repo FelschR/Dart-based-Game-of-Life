@@ -1,4 +1,4 @@
-node-mp-game-of-live
+game-of-life-mp
 ====================
 
-A javascript and node.js based multiplayer variation of Conway's Game of Live
+A Dart based multiplayer variation of Conway's Game of Life
