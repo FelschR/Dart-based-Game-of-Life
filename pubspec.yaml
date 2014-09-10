@@ -1,0 +1,3 @@
+name: dart-game-of-live-multiplayer
+dependencies:
+  browser: any
