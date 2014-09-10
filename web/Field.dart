@@ -85,7 +85,7 @@ class Field {
     user = new User(color);
   }
 
-  ToggleSimulation(){
+  ToggleSimulation() {
     isSimulating = !isSimulating;
 
     //while(isSimulating) {
