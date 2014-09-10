@@ -6,7 +6,6 @@ body {
 
 #game {
     width: 100%;
-    max-width: 1000px;
     height: 80%;
     margin: auto;
 }
@@ -20,10 +19,16 @@ body {
     background: #ffffff;
     width: 1%;
     margin: 0;
+    margin-bottom: -1px;
     padding-bottom: 1%;
     float: left;
     box-sizing: border-box;
-    border: 1px solid #d3d3d3;
+    border-left: 1px solid #d3d3d3;
+    border-top: 1px solid #d3d3d3;
+}
+
+.square:before, .square:after {
+    box-sizing: inherit;
 }
 
 .square:visited {

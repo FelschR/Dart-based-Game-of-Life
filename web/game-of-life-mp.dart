@@ -51,7 +51,13 @@ class MainApplication {
   }
 
   initializeField() {
+    gameEle.style.maxWidth = (window.innerHeight * 0.85).round().toString() + "px";
+    window.onResize.listen((e) => OnWindowResize());
     field = new Field(gameEle, width: 100, height: 100);
+  }
+
+  OnWindowResize() {
+    gameEle.style.maxWidth = (window.innerHeight * 0.85).round().toString() + "px";
   }
 
   connectToServer() {

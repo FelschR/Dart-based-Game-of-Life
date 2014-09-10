@@ -1,5 +1,6 @@
 import "dart:html";
 import "dart:async";
+import "dart:isolate";
 import "Square.dart";
 import "User.dart";
 
@@ -17,11 +18,8 @@ class Field {
   String colorGreen = "#009900";
   String colorPurple = "#9900CC";
 
-  // Map<String, Square> field;
-  // Map<String, Square> fieldUpdated;
-
-  Map<int, Map<int, Square>> field2;
-  Map<int, Map<int, Square>> field2Updated;
+  Map<int, Map<int, Square>> field;
+  Map<int, Map<int, Square>> fieldUpdated;
 
   Field(HtmlElement gameEle, {int width: 100, int height: 100}) {
     this.gameEle = gameEle;
@@ -35,8 +33,8 @@ class Field {
   }
 
   CreateField() {
-    // field = new Map<String, Square>();
-    field2 = new Map<int, Map<int, Square>>();
+    gameEle.hidden = true;
+    field = new Map<int, Map<int, Square>>();
 
     for (int x = 0; x < width; x++) {
       List<Square> squareList = new List<Square>();
@@ -47,18 +45,19 @@ class Field {
       for (int y = 0; y < height; y++) {
         Square square = new Square(x, y);
         String key = x.toString() + ";" + y.toString();
-        // field[key] = square;
         row[y] = square;
         rowDivEle.append(square.DivEle);
       }
 
-      field2[x] = row;
+      field[x] = row;
       gameEle.append(rowDivEle);
     }
 
     gameEle.onMouseDown.listen((e) => MouseDown(e));
     gameEle.onMouseUp.listen((e) => MouseUp(e));
     gameEle.onMouseOver.listen((e) => MouseOver(e));
+
+    gameEle.hidden = false;
   }
 
   InitializeUser() {
@@ -88,18 +87,24 @@ class Field {
   ToggleSimulation() {
     isSimulating = !isSimulating;
 
-    //while(isSimulating) {
+    if (isSimulating) {
+      document.getElementsByClassName("playBt")[0].text = "Stop";
+    } else {
+      document.getElementsByClassName("playBt")[0].text = "Play";
+    }
+    Simulate();
+  }
+
+  Simulate() {
+    if(isSimulating) {
       SimulateStep();
-      //while (document.readyState != "complete") {}
-    //}
+      new Timer(new Duration(milliseconds: 0), () => Simulate());
+    }
   }
 
   SimulateStep() {
-    // fieldUpdated = new Map<String, Square>();
-    // field.forEach((key, square) => SimulateSquare(square));
-    field2Updated = new Map<int, Map<int, Square>>();
-    field2.forEach((posX, row) => row.forEach((posY, square) => SimulateSquare(square)));
-
+    fieldUpdated = new Map<int, Map<int, Square>>();
+    field.forEach((posX, row) => row.forEach((posY, square) => SimulateSquare(square)));
     UpdateField();
   }
 
@@ -108,13 +113,11 @@ class Field {
 
     for (int xOffset = -1; xOffset < 2; xOffset++) {
       int posX = square.posX + xOffset;
-      Map<int, Square> row = field2[posX];
+      Map<int, Square> row = field[posX];
 
       for (int yOffset = -1; yOffset < 2; yOffset++) {
         if (!(xOffset == 0 && yOffset == 0)) {
-          // String pos = (square.posX + xOffset).toString() + ";" + (square.posY + yOffset).toString();
           int posY = square.posY + yOffset;
-          // Square tmpSquare = field[pos];
           if (row != null) {
             Square tmpSquare = row[posY];
             if (tmpSquare != null && tmpSquare.user != null) {
@@ -142,35 +145,37 @@ class Field {
       }
     }
 
-    // String pos = square.posX.toString() + ";" + square.posY.toString();
-    // fieldUpdated[pos] = squareUpdated;
-
     int posX = square.posX;
     int posY = square.posY;
 
-    if (field2Updated[posX] == null) {
-      field2Updated[posX] = new Map<int, Square>();
+    if (fieldUpdated[posX] == null) {
+      fieldUpdated[posX] = new Map<int, Square>();
     }
 
-    field2Updated[posX][posY] = squareUpdated;
+    fieldUpdated[posX][posY] = squareUpdated;
   }
 
   UpdateField() {
-    // field = fieldUpdated;
-    field2 = field2Updated;
-    gameEle.innerHtml = "";
-    // field.forEach((key, square) => gameEle.append(square.divEle));
-    field2.forEach((posX, row) => row.forEach((posY, square) => gameEle.append(square.divEle)));
+    gameEle.hidden = true;
+    field.forEach((posX, row) => row.forEach((posY, square) => UpdateSquare(posX, posY, square)));
+    gameEle.hidden = false;
+  }
+
+  UpdateSquare(int posX, int posY, Square square) {
+    User newUser = fieldUpdated[posX][posY].user;
+    if (square.user != newUser) {
+      square.SetUser(newUser);
+    }
   }
 
   MouseDown(MouseEvent e) {
+    e.preventDefault();
     isMouseDown = true;
-    // Square square = field[e.target.id];
     List<String> splitList = e.target.id.split(";");
     int posX = int.parse(splitList.first);
     int posY = int.parse(splitList.last);
 
-    Square square = field2[posX][posY];
+    Square square = field[posX][posY];
     square.SetUser(user);
   }
 
@@ -180,12 +185,11 @@ class Field {
 
   MouseOver(MouseEvent e) {
     if (isMouseDown) {
-      // Square square = field[e.target.id];
       List<String> splitList = e.target.id.split(";");
       int posX = int.parse(splitList.first);
       int posY = int.parse(splitList.last);
 
-      Square square = field2[posX][posY];
+      Square square = field[posX][posY];
       square.SetUser(user);
     }
   }
