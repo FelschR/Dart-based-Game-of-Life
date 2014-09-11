@@ -15,7 +15,7 @@ body {
     height: 1%;
 }
 
-.square {
+.cell {
     background: #ffffff;
     width: 1%;
     margin: 0;
@@ -27,7 +27,23 @@ body {
     border-top: 1px solid #d3d3d3;
 }
 
-.square:before, .square:after {
+.aliveRed {
+    background: #FF0000;
+}
+
+.aliveBlue {
+    background: #0066FF;
+}
+
+.aliveGreen {
+    background: #009900;
+}
+
+.alivePurple {
+    background: #9900CC;
+}
+
+.cell:before, .cell:after {
     box-sizing: inherit;
 }
 

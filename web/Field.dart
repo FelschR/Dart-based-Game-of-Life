@@ -1,7 +1,7 @@
 import "dart:html";
 import "dart:async";
 import "dart:isolate";
-import "Square.dart";
+import 'Cell.dart';
 import "User.dart";
 
 class Field {
@@ -13,13 +13,13 @@ class Field {
   List<User> userList;
   User user;
 
-  String colorRed = "#FF0000";
-  String colorBlue = "#0066FF";
-  String colorGreen = "#009900";
-  String colorPurple = "#9900CC";
+  static const String colorRed = "#FF0000";
+  static const String colorBlue = "#0066FF";
+  static const String colorGreen = "#009900";
+  static const String colorPurple = "#9900CC";
 
-  Map<int, Map<int, Square>> field;
-  Map<int, Map<int, Square>> fieldUpdated;
+  Map<int, Map<int, Cell>> field;
+  Map<int, Map<int, Cell>> fieldUpdated;
 
   Field(HtmlElement gameEle, {int width: 100, int height: 100}) {
     this.gameEle = gameEle;
@@ -34,19 +34,19 @@ class Field {
 
   CreateField() {
     gameEle.hidden = true;
-    field = new Map<int, Map<int, Square>>();
+    field = new Map<int, Map<int, Cell>>();
 
     for (int x = 0; x < width; x++) {
-      List<Square> squareList = new List<Square>();
+      List<Cell> cellList = new List<Cell>();
       DivElement rowDivEle = new DivElement();
       rowDivEle.classes.add("row");
-      Map<int, Square> row = new Map<int, Square>();
+      Map<int, Cell> row = new Map<int, Cell>();
 
       for (int y = 0; y < height; y++) {
-        Square square = new Square(x, y);
+        Cell cell = new Cell(x, y);
         String key = x.toString() + ";" + y.toString();
-        row[y] = square;
-        rowDivEle.append(square.DivEle);
+        row[y] = cell;
+        rowDivEle.append(cell.DivEle);
       }
 
       field[x] = row;
@@ -56,6 +56,7 @@ class Field {
     gameEle.onMouseDown.listen((e) => MouseDown(e));
     gameEle.onMouseUp.listen((e) => MouseUp(e));
     gameEle.onMouseOver.listen((e) => MouseOver(e));
+    gameEle.onContextMenu.listen((e) => ContextMenuOpen(e));
 
     gameEle.hidden = false;
   }
@@ -96,87 +97,99 @@ class Field {
   }
 
   Simulate() {
-    if(isSimulating) {
-      SimulateStep();
-      new Timer(new Duration(milliseconds: 0), () => Simulate());
+    new Timer.periodic(new Duration(milliseconds: 0), SimulateStep);
+  }
+
+  SimulateStep(Timer timer) {
+    fieldUpdated = new Map<int, Map<int, Cell>>();
+    field.forEach((posX, row) => row.forEach((posY, cell) => SimulateCell(cell)));
+    UpdateField();
+
+    if (!isSimulating) {
+      timer.cancel();
     }
   }
 
-  SimulateStep() {
-    fieldUpdated = new Map<int, Map<int, Square>>();
-    field.forEach((posX, row) => row.forEach((posY, square) => SimulateSquare(square)));
-    UpdateField();
-  }
-
-  SimulateSquare(Square square) {
+  SimulateCell(Cell cell) {
     List<String> userIdAroundList = new List<String>();
 
     for (int xOffset = -1; xOffset < 2; xOffset++) {
-      int posX = square.posX + xOffset;
-      Map<int, Square> row = field[posX];
+      int posX = cell.posX + xOffset;
+      Map<int, Cell> row = field[posX];
 
       for (int yOffset = -1; yOffset < 2; yOffset++) {
         if (!(xOffset == 0 && yOffset == 0)) {
-          int posY = square.posY + yOffset;
+          int posY = cell.posY + yOffset;
           if (row != null) {
-            Square tmpSquare = row[posY];
-            if (tmpSquare != null && tmpSquare.user != null) {
-              userIdAroundList.add(tmpSquare.user.id);
+            Cell tmpcell = row[posY];
+            if (tmpcell != null && tmpcell.user != null) {
+              userIdAroundList.add(tmpcell.user.id);
             }
           }
         }
       }
     }
 
-    Square squareUpdated = new Square(square.posX, square.posY);
-    squareUpdated.SetUser(square.user);
+    Cell cellUpdated = new Cell(cell.posX, cell.posY);
+    cellUpdated.SetUser(cell.user);
 
     int userAroundLength = userIdAroundList.length;
 
-    if ((userAroundLength == 2 && squareUpdated.user != null) || userAroundLength == 3) {
-      if (squareUpdated.user == null) {
+    if ((userAroundLength == 2 && cellUpdated.user != null) || userAroundLength == 3) {
+      if (cellUpdated.user == null) {
         // TODO select color / user
-        squareUpdated.SetUser(user);
+        cellUpdated.SetUser(user);
       }
     }
     else {
-      if (squareUpdated.user != null) {
-        squareUpdated.SetUser(null);
+      if (cellUpdated.user != null) {
+        cellUpdated.SetUser(null);
       }
     }
 
-    int posX = square.posX;
-    int posY = square.posY;
+    int posX = cell.posX;
+    int posY = cell.posY;
 
     if (fieldUpdated[posX] == null) {
-      fieldUpdated[posX] = new Map<int, Square>();
+      fieldUpdated[posX] = new Map<int, Cell>();
     }
 
-    fieldUpdated[posX][posY] = squareUpdated;
+    fieldUpdated[posX][posY] = cellUpdated;
   }
 
   UpdateField() {
     gameEle.hidden = true;
-    field.forEach((posX, row) => row.forEach((posY, square) => UpdateSquare(posX, posY, square)));
+    field.forEach((posX, row) => row.forEach((posY, cell) => UpdateCell(posX, posY, cell)));
     gameEle.hidden = false;
   }
 
-  UpdateSquare(int posX, int posY, Square square) {
+  UpdateCell(int posX, int posY, Cell cell) {
     User newUser = fieldUpdated[posX][posY].user;
-    if (square.user != newUser) {
-      square.SetUser(newUser);
+    if (cell.user != newUser) {
+      cell.SetUser(newUser);
     }
   }
 
   MouseDown(MouseEvent e) {
     e.preventDefault();
     isMouseDown = true;
+    User newUser;
+    if (e.button == 0) {
+      // left click
+      newUser = user;
+    } else if (e.button == 2) {
+      // right click
+      newUser = null;
+    } else {
+      return;
+    }
+
     List<String> splitList = e.target.id.split(";");
     int posX = int.parse(splitList.first);
     int posY = int.parse(splitList.last);
 
-    Square square = field[posX][posY];
-    square.SetUser(user);
+    Cell cell = field[posX][posY];
+    cell.SetUser(newUser);
   }
 
   MouseUp(MouseEvent e) {
@@ -185,12 +198,27 @@ class Field {
 
   MouseOver(MouseEvent e) {
     if (isMouseDown) {
+      User newUser;
+      if (e.button == 0) {
+        // left click
+        newUser = user;
+      } else if (e.button == 2) {
+        // right click
+        newUser = null;
+      } else {
+        return;
+      }
+
       List<String> splitList = e.target.id.split(";");
       int posX = int.parse(splitList.first);
       int posY = int.parse(splitList.last);
 
-      Square square = field[posX][posY];
-      square.SetUser(user);
+      Cell cell = field[posX][posY];
+      cell.SetUser(newUser);
     }
+  }
+
+  ContextMenuOpen(MouseEvent e) {
+    e.preventDefault();
   }
 }

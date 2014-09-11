@@ -42,7 +42,7 @@ class MainApplication {
       loadStatus = 0;
     }
 
-    new Timer(new Duration(milliseconds: 500), () => showLoadingAnimation());
+    new Timer(new Duration(milliseconds: 0), () => showLoadingAnimation());
   }
 
   loadGame() {
