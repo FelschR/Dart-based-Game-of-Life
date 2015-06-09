@@ -1,4 +1,4 @@
-game-of-life-mp
+game_of_life_mp
 ====================
 
 A Dart based multiplayer variation of Conway's Game of Life

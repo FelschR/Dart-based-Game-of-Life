@@ -1,6 +1,11 @@
+library game_of_life_mp;
+
 import "dart:html";
 import "dart:async";
-import "Field.dart";
+
+part "field.dart";
+part "cell.dart";
+part "user.dart";
 
 void main() {
   MainApplication mainApp = new MainApplication();
@@ -24,7 +29,7 @@ class MainApplication {
     // showLoadingAnimation();
     loadGame();
 
-    document.getElementsByClassName("playBt")[0].onClick.listen((e) => field.ToggleSimulation());
+    (document.getElementsByClassName("playBt")[0] as ButtonElement).onClick.listen((e) => field.ToggleSimulation());
   }
 
   showLoadingAnimation() {

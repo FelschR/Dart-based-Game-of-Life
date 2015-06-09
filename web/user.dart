@@ -1,3 +1,5 @@
+part of game_of_life_mp;
+
 class User {
 
   String id;

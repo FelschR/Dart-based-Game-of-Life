@@ -1,8 +1,4 @@
-import "dart:html";
-import "dart:async";
-import "dart:isolate";
-import 'Cell.dart';
-import "User.dart";
+part of game_of_life_mp;
 
 class Field {
   HtmlElement gameEle;
@@ -184,7 +180,7 @@ class Field {
       return;
     }
 
-    List<String> splitList = e.target.id.split(";");
+    List<String> splitList = (e.target as DivElement).id.split(";");
     int posX = int.parse(splitList.first);
     int posY = int.parse(splitList.last);
 
@@ -209,9 +205,13 @@ class Field {
         return;
       }
 
+      int posX = e.client.x;
+      int posY = e.client.y;
+      /*
       List<String> splitList = e.target.id.split(";");
       int posX = int.parse(splitList.first);
       int posY = int.parse(splitList.last);
+      */
 
       Cell cell = field[posX][posY];
       cell.SetUser(newUser);

@@ -1,7 +1,4 @@
-import "dart:html";
-import "dart:async";
-import "User.dart";
-import "Field.dart";
+part of game_of_life_mp;
 
 class Cell {
   int posX;

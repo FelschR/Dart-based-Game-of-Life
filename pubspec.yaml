@@ -1,3 +1,8 @@
-name: game-of-life-mp
+name: game_of_life_mp
+version: 0.0.1
 dependencies:
   browser: any
+description: A Dart based multiplayer variation of Conway's Game of Life
+author: Felix Schröter <felschr@gmail.com>
+environment:
+  sdk: ">=1.0.0"
