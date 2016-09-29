@@ -1,7 +1,6 @@
 game_of_life_mp
 ====================
 
-A Dart based multiplayer variation of Conway's Game of Life
+Dart based Conway's Game of Life
 
-The game is currently under development.
-Have a look at the milestones page for a (rough) roadmap.
+The development of this game has stopped, no multiplayer capabilities are implemented.
